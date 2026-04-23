@@ -14,7 +14,7 @@ This project uses a simpler and more transparent content-based recommender. Inst
 
 The workflow is: input a user's taste profile, loop through every song in `songs.csv`, score each song against the profile, sort all songs by score, and return the top `k` results. The scoring rule rewards songs that are closer to the user's preferred values, not just songs with higher numbers. Exact matches on categorical features like genre and mood add bonus points, while numerical features are scored by closeness to the user's target. For example, a song with energy near the user's target energy should score higher than one that is much lower or much higher. This means the system prioritizes interpretable matches: similar vibe first, then the closest overall fit across the remaining features.
 
-![Workflow diagram](images/workflow.png)
+![Workflow diagram](assets/workflow.png)
 
 The current weighting strategy is designed so that numeric vibe features lead and categorical labels refine the result. A reasonable starting point is `energy = 3.0`, `tempo_bpm = 2.5`, `danceability = 2.0`, `genre = 2.0`, `mood = 2.0`, `valence = 1.5`, and `acousticness = 1.5`. `Energy` and `tempo_bpm` are weighted the most because they strongly separate low-key tracks from intense ones in this dataset. `Danceability` also matters because it helps identify whether a song feels groove-driven or more reflective. `Genre` and `mood` still matter, but they are not given overwhelming weight because the dataset has many one-off labels, and exact matches would otherwise dominate too much. `Valence` and `acousticness` are useful secondary signals that help describe emotional tone and sonic texture.
 
@@ -62,35 +62,35 @@ You can add more tests in `tests/test_recommender.py`.
 
 These screenshots show sample terminal output from the recommender after scoring songs, sorting them by total score, and returning the top matches.
 
-![Recommendation result 1](images/result1.png)
+![Recommendation result 1](assets/result1.png)
 
-![Recommendation result 2](images/result2.png)
+![Recommendation result 2](assets/result2.png)
 
 ### Edge-Case Results
 
 `result3.png` and `result4.png` test a contradictory user profile: a user whose categorical and numeric preferences pull in opposite directions. The user asks for `lofi` and `chill`, but also wants extremely high energy, very fast tempo, high valence, and high danceability. This checks whether the system stays loyal to genre and mood labels or gets pulled toward intense numeric matches instead.
 
-![Edge case result 3](images/result3.png)
+![Edge case result 3](assets/result3.png)
 
-![Edge case result 4](images/result4.png)
+![Edge case result 4](assets/result4.png)
 
 `result5.png` and `result6.png` test a sparse-match profile: a user whose labels point in conflicting directions and have very few natural matches in the catalog. The user asks for `classical` and `aggressive` at the same time, with very low energy and very low danceability. This helps show whether the recommender still returns sensible results when no song is a clean match across all dimensions.
 
-![Edge case result 5](images/result5.png)
+![Edge case result 5](assets/result5.png)
 
-![Edge case result 6](images/result6.png)
+![Edge case result 6](assets/result6.png)
 
 `result7.png` and `result8.png` test a mood trap profile: a user whose mood label conflicts with the rest of the profile. The user asks for `edm` but `chill`, while also preferring very high energy, fast tempo, high danceability, and low acousticness. This checks whether a single mood label can overpower the stronger numeric vibe signals.
 
-![Edge case result 7](images/result7.png)
+![Edge case result 7](assets/result7.png)
 
-![Edge case result 8](images/result8.png)
+![Edge case result 8](assets/result8.png)
 
 `result9.png` and `result10.png` test an acoustic conflict profile: a user who wants highly acoustic songs but also wants club-like numeric features. The user asks for `folk`, `playful`, high energy, fast tempo, high danceability, high valence, and `likes_acoustic = True`. This reveals whether acoustic preference is strong enough to compete with a profile that otherwise points toward bright pop and dance tracks.
 
-![Edge case result 9](images/result9.png)
+![Edge case result 9](assets/result9.png)
 
-![Edge case result 10](images/result10.png)
+![Edge case result 10](assets/result10.png)
 
 ---
 
