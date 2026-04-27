@@ -1,135 +1,278 @@
-# Model Card: Music Recommender Simulation
+# Model Card: Applied AI Music Recommendation System
 
 ## 1. Model Name
 
-**CLI VibeMatch 1.0**
+**VibeMatch AI — Retrieve → Rank → Explain Pipeline**
 
 ---
 
 ## 2. Goal / Task
 
-The goal of this recommender is to suggest songs from a small catalog that best match a user's stated preferences. It does this by comparing the features of each song to a user taste profile, computing a score for each song, and ranking the songs from best match to worst match. The model is trying to answer a narrow question: "Given this user profile, which songs in this dataset are the closest fit?"
+This system recommends a personalised playlist from a catalog of 81,343 songs by
+combining three AI stages: TF-IDF keyword retrieval, LightGBM ML ranking, and a
+Groq language model (Llama-3.3-70b) that writes one-sentence explanations for each
+recommendation.
 
-This is not a prediction model for long-term behavior, popularity, or what a large audience will like. It is a small recommendation simulation focused on matching one user's stated taste to one song at a time.
+The system answers two questions at once: "Which songs in this catalog match what
+the user is asking for?" (retrieval) and "Of those, which ones best fit this
+particular user's taste based on their history?" (ranking). The language model
+then translates the result into plain English.
+
+This is not a production streaming service. It is an educational project
+demonstrating how modern recommendation pipelines work at each stage.
 
 ---
 
 ## 3. Intended Use and Non-Intended Use
 
-This recommender is intended for classroom exploration and learning. It is designed to help explain how recommendation systems can turn user preferences and item features into ranked outputs. It is useful for demonstrating ideas like content-based filtering, weighted scoring, ranking rules, explanation generation, and bias in recommendation systems.
+**Intended use:** personal music discovery, classroom learning, and portfolio
+demonstration of RAG + ML ranking concepts.
 
-It is not intended for real users or production use. It should not be used for commercial streaming recommendations, high-stakes decision making, or any setting where fairness, diversity, or real user satisfaction must be measured carefully. It should also not be treated as a full model of a person's music taste, because it only uses a small handcrafted dataset and a limited set of features.
+**Not intended for:** commercial music streaming, high-stakes content curation,
+or any setting where algorithmic bias could cause harm to users or artists.
 
 ---
 
 ## 4. Data Used
 
-The model uses a dataset stored in `data/songs.csv` with **35 songs**. The dataset began as a small starter file and was expanded with 25 additional songs to create more variety in genres, moods, and audio characteristics. Each song has the following features:
+### Original data sources
 
-- `id`
-- `title`
-- `artist`
-- `genre`
-- `mood`
-- `energy`
-- `tempo_bpm`
-- `valence`
-- `danceability`
-- `acousticness`
+Two public Kaggle datasets were combined to build the catalog and interaction log:
 
-The dataset covers a wide range of genres such as `pop`, `lofi`, `rock`, `ambient`, `jazz`, `synthwave`, `hip hop`, `r&b`, `folk`, `classical`, `edm`, `reggae`, `metal`, `country`, `latin`, `house`, `techno`, `dream pop`, `soul`, `funk`, `blues`, `punk`, `k-pop`, `afrobeat`, `trip hop`, `orchestral`, `bossa nova`, `drum and bass`, `city pop`, `americana`, and `post-rock`. It also includes many moods such as `happy`, `chill`, `intense`, `romantic`, `serene`, `playful`, `groovy`, `melancholic`, `bright`, and `cinematic`.
+- **Last.fm Dataset** — [harshal19t/lastfm-dataset](https://www.kaggle.com/datasets/harshal19t/lastfm-dataset)
+  Provided user listening history and song interaction records used to seed
+  `interactions.csv` (user-song play counts and implicit feedback signals).
 
-The main limits of the dataset are that it is still very small and uneven. Many genres and moods appear only once, which makes exact label matching brittle. The data also does not include lyrics, language, release year, artist popularity, user listening history, skip behavior, or any collaborative filtering signals.
+- **Spotify Tracks Dataset** — [maharshipandya/spotify-tracks-dataset](https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset)
+  Provided audio features per track: energy, tempo, valence, danceability,
+  acousticness, instrumentalness, speechiness, and popularity.
+
+These two datasets were merged with the assistance of Claude (AI assistant):
+duplicate songs were removed, song IDs were standardised so that user
+interactions from the Last.fm data could be correctly joined to song audio
+features from the Spotify data, and the schema was normalised into the single
+`songs_full.csv` format this project uses.
+
+### Resulting files
+
+**Catalog:** `data/songs_full.csv` — 81,343 songs with the following features:
+`song_id`, `title`, `artist_name`, `artist_id`, `genre`, `mood`, `release_date`,
+`energy`, `tempo_bpm`, `valence`, `danceability`, `acousticness`,
+`instrumentalness`, `speechiness`, `popularity_norm`.
+
+**Interaction log:** `data/interactions.csv` — Like/Skip feedback collected
+during user sessions. Each row records `user_id`, `song_id`, `label` (1=liked,
+0=skipped), `play_count`, and `timestamp`. This file is the training data for
+the LightGBM ranking model.
+
+**User profiles:** `data/user_profiles/` and `data/current_user.json` — survey
+answers converted into structured fields including `genre_vector` (multi-hot
+encoding), `mood_targets` (numeric energy and valence targets), `exploration_weight`,
+and `popularity_preference`.
 
 ---
 
 ## 5. Algorithm Summary
 
-This recommender uses a **content-based scoring rule**. Each song is compared directly to a user's profile. The user profile stores:
+The system runs three stages in sequence on every playlist refresh:
 
-- favorite genre
-- favorite mood
-- target energy
-- target tempo
-- target valence
-- target danceability
-- whether the user prefers acoustic songs
+**Stage 1 — TF-IDF Retrieval** (`src/rag/`)
+Each song has a generated text description packed with searchable keywords: genre,
+mood, era, tempo label, use-case phrases, and "instrumental no lyrics" for tracks
+with high instrumentalness. A TF-IDF vectorizer is fitted on all 81k descriptions.
+At query time, the user's free-text intent is converted to a TF-IDF vector and
+dot-producted against the index matrix to retrieve the 100 most relevant songs.
 
-The model gives bonus points when a song matches the user's preferred `genre` and `mood`. For the numeric features, it rewards songs that are **close** to the user's target instead of simply rewarding high values or low values. For example, if the user's target energy is `0.8`, then a song with energy `0.82` should score higher than a song with energy `0.4` or `0.95`, because it is closer to the target.
+**Stage 2 — ML Ranking** (`src/ranking/`)
+Six features are computed per candidate song:
+- `content_similarity` — cosine(user embedding, song embedding)
+- `artist_similarity` — cosine(user artist vector, artist embedding)
+- `freshness` — exp(−0.01 × age_in_days)
+- `popularity` — normalised popularity from the CSV
+- `collaborative_score` — mean cosine(candidate, all liked songs)
+- `diversity_penalty` — count of same-artist songs ranked above this one
 
-The current scoring weights are:
+A LightGBM classifier trained on `interactions.csv` predicts the probability that
+the user will like each song. A hand-weighted fallback runs when LightGBM is
+unavailable locally.
 
-- `energy = 3.0`
-- `tempo_bpm = 2.5`
-- `danceability = 2.0`
-- `genre = 2.0`
-- `mood = 2.0`
-- `valence = 1.5`
-- `acousticness = 1.5`
+**Stage 3 — Groq LLM Explanation** (`src/rag/rag_layer.py`)
+The top 50 ML-ranked songs and the user's original intent text are sent to
+Groq (Llama-3.3-70b). Groq writes one sentence per song explaining why it fits,
+citing the user's own words where possible. The final playlist returns 10 songs.
 
-After every song gets a score, the system sorts the songs by score from highest to lowest and returns the top `k` matches. It also generates a short explanation for each recommendation, such as "matches your preferred genre" or "tempo is close to your target."
-
-Compared to the starter version, the model was improved by adding more user profile features, expanding the dataset, and implementing weighted numeric closeness instead of a very basic placeholder approach.
-
----
-
-## 6. Observed Behavior / Biases
-
-One pattern I observed is that the recommender works well when the categorical labels and numeric features point in the same direction. For example, a user who likes `pop`, `happy`, high energy, and high danceability tends to receive upbeat pop and dance-oriented tracks near the top, which feels intuitive.
-
-A major limitation is that the model is sensitive to whichever feature has the highest weight, especially `energy`. In one experiment, I doubled the importance of `energy` and cut the importance of `genre` in half. This caused the lower-ranked results to shift toward songs that matched intensity better, even when they were less genre-consistent. That means the model can over-prioritize one dimension of taste and recommend songs that are mathematically close but stylistically less natural.
-
-The dataset also creates imbalance. Many genres and moods only appear once, so some users get weaker genre or mood matching than others simply because the dataset is sparse. The model also cannot understand lyrics, language, artist background, cultural meaning, or changing listening context. Because of that, it may favor users whose taste fits the available tags and numeric ranges more neatly than users with more complex or mixed preferences.
+When the user types no intent, Stage 1 is replaced by a profile-based retriever
+(`src/retrieval/retriever.py`) that uses cosine similarity over PCA audio embeddings.
 
 ---
 
-## 7. Evaluation Process
+## 6. Observed Behavior and Biases
 
-I tested the system by running it with several different user profiles and checking whether the top recommendations made sense. I used a normal sample profile in `main.py` and then several edge-case or adversarial profiles to see how the scoring logic behaved under unusual conditions.
+**What works well:**
+The system separates calm acoustic styles from energetic dance-oriented styles
+reliably. When a user's survey answers and liked songs point in the same direction,
+the recommendations feel cohesive and accurate.
 
-The edge-case profiles included:
+**Keyword dependency:**
+TF-IDF is purely keyword-based. It cannot understand that "mellow" and "calm" are
+synonyms unless both words appear in song descriptions. Queries using uncommon
+synonyms may return weaker results than queries using the exact words embedded
+during indexing.
 
-- a contradictory profile: `lofi` and `chill`, but also very high energy, very high tempo, high valence, and high danceability
-- a sparse-match profile: `classical` and `aggressive` together, with very low energy and very low danceability
-- a mood-trap profile: `edm` but `chill`, while the numeric targets still strongly favored energetic dance music
-- an acoustic-conflict profile: `folk`, `playful`, high energy, high danceability, and `likes_acoustic = True`
+**Genre and popularity concentration:**
+The catalog has uneven genre distribution — some genres have thousands of songs,
+others have dozens. Users who prefer underrepresented genres receive a weaker
+candidate pool, which the ranking model cannot fully compensate for.
 
-These profiles helped test whether the recommender would be "tricked" by conflicting preferences or produce unexpected results. I also ran a weight experiment where I changed `energy` from `3.0` to `6.0` and `genre` from `2.0` to `1.0`. With the original weights, the sample profile produced `Sunrise City`, `Rooftop Lights`, `Gym Hero`, `Velvet Sunrise`, and `Pulse District` in the top five. After the weight shift, the top five became `Sunrise City`, `Rooftop Lights`, `Gym Hero`, `Velvet Sunrise`, and `Midtown Strut`. That comparison showed that the model is quite sensitive to the scoring design.
-
-I also visually checked the CLI output and used the explanation strings to see why songs were being ranked the way they were. This helped confirm that the ranking changes came from the scoring logic I intended, not from accidental bugs.
-
----
-
-## 8. Strengths
-
-The system is good at broad vibe matching. It can clearly separate calm acoustic styles from intense, fast, and dance-oriented styles. It also does a good job when the user's profile describes a coherent taste pattern, because the genre, mood, and numeric features reinforce each other.
-
-Another strength is transparency. The scoring logic is simple enough to explain clearly, and the CLI output shows the final score and the reasons behind each recommendation. That makes it easier to understand, debug, and reflect on than a more opaque machine learning system.
-
----
-
-## 9. Limitations and Risks
-
-The biggest limitation is oversensitivity to feature weights. If one feature becomes too important, the model may drift away from intuitive recommendations and start overfitting to that one signal. This happened in my energy-weight experiment, where the model became more intensity-driven and less genre-aware.
-
-The model also works on a tiny handcrafted catalog, so it cannot capture the real complexity of music recommendation. It does not know anything about lyrics, culture, time of day, repeated listening, novelty, artist popularity, or collaborative patterns across many users. Because the dataset is small and uneven, some users are effectively better represented than others, which can create unfairness or weak coverage for certain tastes.
+**Cold-start artist bias:**
+Early in a session, before enough liked songs accumulate to build a strong user
+embedding, the cold-start recommender leans toward the user's stated favourite
+artists. This means users who explicitly asked for discovery (high `exploration_weight`)
+still saw familiar artists dominating their first playlist. This was identified
+during testing and addressed — see Section 7.
 
 ---
 
-## 10. Ideas for Improvement
+## 7. Testing Methods and Results
 
-If I kept developing this project, I would make these improvements:
+### Automated fallback testing
 
-1. Add support for multiple favorite genres and moods instead of just one, so the profile can represent mixed taste better.
-2. Add diversity rules so the top recommendations are not all clustered around the same narrow vibe.
-3. Add richer features such as lyric themes, softer genre similarity, or tolerance ranges for numeric targets instead of exact one-point targets.
+All three fallback paths were verified manually:
+- **Missing TF-IDF index** → pipeline falls back to profile-based retrieval without crashing
+- **Groq API failure** (tested with an invalid key) → ML-ranked songs are returned with empty explanation fields; the app continues normally
+- **Missing LightGBM model** → ranker uses hand-weighted formula; output is still ordered and reasonable
+
+### Freshness window testing
+
+The 81k catalog pre-dates 2024 for most songs. The progressive freshness window
+relaxation (90 → 180 → 365 → 730 → all songs) was verified to trigger automatically
+and print a log message when a wider window was needed.
+
+### Friends testing
+
+The system was tested with a small group of friends who completed the survey and
+rated songs. The main finding: **the recommended songs mostly matched our actual
+musical taste**, confirming that the combination of survey-based cold-start and
+interaction-based ranking was producing sensible results.
+
+**One issue found during testing:**
+Even when a user set their `exploration_weight` to maximum (asking for discovery),
+the initial cold-start playlist was still dominated by their declared favourite
+artists. Users who wanted to discover new music were not getting it.
+
+**Fix implemented:**
+Two mechanisms were added to address this:
+1. **Slot reservation** in `src/recommender/initial.py` — `exploration_weight`
+   now controls how many of the 10 cold-start slots go to familiar artists vs.
+   discovery songs. A user who sets exploration to maximum gets mostly unfamiliar
+   artists in their first playlist.
+2. **Artist similarity via embeddings** in `src/retrieval/retriever.py` — the
+   retriever now finds songs from artists whose audio embedding is *similar* to
+   the user's favourites, not just artists the user explicitly named. This surfaces
+   genuinely new artists that match the same sonic vibe.
 
 ---
 
-## 11. Personal Reflection
+## 8. Responsible AI Reflection
 
-My biggest learning moment was realizing how much influence simple engineering choices have on recommendations. I expected the dataset to matter most, but I learned that the scoring weights themselves can reshape the ranking very quickly. Changing one weight made the model behave differently in a way that was immediately visible, which helped me understand how much recommendation systems depend on design choices rather than just raw data.
+### Limitations and biases
 
-Using AI tools helped me move faster when brainstorming scoring rules, designing edge-case profiles, and improving documentation. They were especially useful for turning rough ideas into clear explanations and for suggesting test cases I might not have thought of right away. At the same time, I had to double-check anything that touched the actual implementation or documented results, because an explanation can sound reasonable while still not matching the real code or the real output I captured.
+- **Filter bubble risk:** the collaborative score rewards songs similar to what
+  the user already liked. Over time, this can narrow recommendations and make it
+  harder to discover genuinely different music. The `exploration_weight` and
+  `diversity_penalty` features partially counter this but do not eliminate it.
+- **Popularity bias:** the `popularity` feature rewards well-known songs.
+  Underground or niche artists are disadvantaged even when their music would be
+  a good taste match.
+- **Language and culture blindness:** the system operates entirely on audio
+  features and keywords. It has no understanding of lyrics, language, cultural
+  context, or artist background.
+- **Dataset quality:** the catalog's mood and genre labels are assigned by a
+  third party and may not match how users describe music themselves.
 
-What surprised me most was that a simple algorithm could still feel like a recommender. Even without machine learning or user-history data, the combination of feature matching, weighted scoring, ranking, and short explanations already feels personalized. If I extended this project further, I would next try softer genre similarity, multiple preferred moods, and a diversity-aware reranking step so the results feel both accurate and less repetitive.
+### Could this AI be misused, and how would you prevent it?
+
+The most realistic misuse would be using the interaction log to profile users'
+listening patterns for commercial purposes without their knowledge.
+
+Preventions built into this project:
+- All data (`interactions.csv`, user profile JSONs) is stored locally and never
+  transmitted to any server.
+- The `.env` file and `.gitignore` ensure API keys and personal data are not
+  accidentally committed to a public repository.
+- The system has no account system or persistent identity beyond a local UUID —
+  there is nothing to sell or leak to a third party.
+
+At a larger scale, this kind of system would also need: explicit consent for data
+collection, the ability to delete your interaction history, and transparency about
+how recommendations are generated (the explanations from Groq partially address this).
+
+### What surprised me during reliability testing
+
+The most surprising discovery was how well `"no lyrics"` and `"instrumental"` worked
+as search terms. During testing I typed `"calm piano no lyrics for studying"` and
+the TF-IDF immediately returned mostly instrumental classical and ambient songs —
+because those exact words (`instrumental`, `no lyrics`) are embedded in every
+qualifying song's description during the build step. The keyword design decision
+paid off in a way that was not obvious until we tested it with real queries.
+
+The second surprise was the Groq fallback: when tested with an intentionally invalid
+API key, the app showed the ML-ranked songs with blank explanation fields and
+continued working normally. The graceful degradation that was designed into the code
+actually worked as intended.
+
+---
+
+## 9. AI Collaboration During This Project
+
+Building this project involved significant collaboration with Claude (AI assistant)
+across multiple sessions. Here are two specific examples that illustrate both the
+value and the limits of that collaboration.
+
+**One instance where the AI suggestion was genuinely helpful:**
+
+When the cold-start bias problem was identified (users wanting discovery still seeing
+only familiar artists), the AI suggested the **slot reservation mechanism** — using
+`exploration_weight` not just as a label but as a numeric control over how many
+playlist slots are allocated to familiar vs. discovery artists. It also suggested
+routing any "familiar shortfall" (when not enough distinct favourite artists exist)
+into the discovery pool rather than repeating artists. This was a clean design
+pattern ("policy vs. mechanism") that I would not have arrived at as quickly on my own.
+
+**One instance where the AI suggestion was flawed:**
+
+The original AI-designed retrieval plan used **FAISS** (Facebook AI Similarity Search)
+for fast vector search over the 81k song embeddings. The AI recommended this
+confidently as the industry-standard tool for this kind of problem — and it is, at
+larger scale. However, FAISS requires MSVC (Microsoft Visual C++) to compile on
+Windows, and this project runs on a MINGW Python that cannot build it. The suggestion
+failed at the installation step. The fix was to replace FAISS with a plain numpy dot
+product (`matrix @ query`), which is mathematically identical at this catalog size
+and works without any native compilation. The AI's suggestion was correct in principle
+but did not account for the specific environment constraint.
+
+---
+
+## 10. Strengths
+
+- The three-stage pipeline gives each component a job it handles well. No single
+  component is overloaded with tasks it cannot reliably do.
+- Every stage has a graceful fallback so the system never crashes due to a missing
+  file, unavailable package, or API error.
+- The explanation step makes recommendations transparent — the user can read why
+  each song was chosen in their own words, which builds trust and makes errors easy
+  to spot.
+
+---
+
+## 11. Ideas for Further Improvement
+
+1. **Incremental model retraining** — currently the LightGBM model must be retrained
+   manually on Colab. Adding an automatic retraining trigger when enough new
+   interactions accumulate would make the system truly adaptive.
+2. **Softer genre similarity** — TF-IDF treats "jazz" and "smooth jazz" as different
+   keywords. A genre taxonomy or embedding could capture that they are related.
+3. **Session context** — the current system uses the same profile for every session.
+   Adding a "mood right now" input at the start of each session (separate from the
+   permanent profile) would let the system adapt to how the user feels today, not
+   just their general taste.
