@@ -1,0 +1,11 @@
+{
+  "feature_columns": [
+    "content_similarity",
+    "artist_similarity",
+    "freshness",
+    "popularity",
+    "collaborative_score",
+    "diversity_penalty"
+  ],
+  "n_components": 32
+}
