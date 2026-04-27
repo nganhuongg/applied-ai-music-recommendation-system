@@ -1,3 +1,7 @@
-pandas
-pytest
+numpy
+scikit-learn
 streamlit
+requests
+python-dotenv
+lightgbm
+pytest

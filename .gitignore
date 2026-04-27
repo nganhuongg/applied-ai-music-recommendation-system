@@ -7,9 +7,15 @@ __pycache__/
 .venv/
 env/
 venv/
+.env
+
 
 # OS files
 .DS_Store
 
 # Pytest cache
 .pytest_cache/
+
+# Local notes
+reflection.md
+DESIGN.md
