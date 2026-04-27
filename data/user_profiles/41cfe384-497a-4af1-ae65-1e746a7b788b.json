@@ -1,0 +1,60 @@
+{
+  "user_id": "41cfe384-497a-4af1-ae65-1e746a7b788b",
+  "name": "Huong",
+  "created_at": "2026-04-24T22:54:14.007498",
+  "favorite_artists": [
+    "Alan Walker",
+    "Alec Benjamin",
+    "BLACKPINK"
+  ],
+  "recent_artists": [
+    "Billie Eilish",
+    "Taylor Swift"
+  ],
+  "favorite_genres": [
+    "chill",
+    "pop"
+  ],
+  "selected_moods": [
+    "\ud83d\ude0c Chill"
+  ],
+  "genre_vector": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mood_targets": {
+    "target_energy": 0.3,
+    "target_valence": 0.5
+  },
+  "purpose": "study",
+  "exploration_weight": 0.5,
+  "popularity_preference": "mixed"
+}

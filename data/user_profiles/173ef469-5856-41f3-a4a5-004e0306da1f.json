@@ -1,0 +1,63 @@
+{
+  "user_id": "173ef469-5856-41f3-a4a5-004e0306da1f",
+  "name": "Huong",
+  "created_at": "2026-04-26T17:48:14.107957",
+  "favorite_artists": [
+    "Billie Eilish",
+    "Alec Benjamin",
+    "Alan Walker",
+    "Selena Gomez"
+  ],
+  "recent_artists": [
+    "Selena Gomez",
+    "Billie Eilish"
+  ],
+  "favorite_genres": [
+    "chill",
+    "indie",
+    "pop"
+  ],
+  "selected_moods": [
+    "Calm",
+    "Melancholic"
+  ],
+  "genre_vector": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mood_targets": {
+    "target_energy": 0.3,
+    "target_valence": 0.35
+  },
+  "purpose": "study",
+  "exploration_weight": 0.1,
+  "popularity_preference": "mixed"
+}

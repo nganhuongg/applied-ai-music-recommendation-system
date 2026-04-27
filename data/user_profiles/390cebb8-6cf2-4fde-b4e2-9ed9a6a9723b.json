@@ -1,0 +1,62 @@
+{
+  "user_id": "390cebb8-6cf2-4fde-b4e2-9ed9a6a9723b",
+  "name": "Linh",
+  "created_at": "2026-04-26T17:57:30.210679",
+  "favorite_artists": [
+    "Olivia Rodrigo",
+    "(G)I-DLE",
+    "Alicia Keys",
+    "Taylor Swift"
+  ],
+  "recent_artists": [
+    "Taylor Swift",
+    "Olivia Rodrigo"
+  ],
+  "favorite_genres": [
+    "acoustic",
+    "country",
+    "folk"
+  ],
+  "selected_moods": [
+    "Melancholic"
+  ],
+  "genre_vector": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mood_targets": {
+    "target_energy": 0.3,
+    "target_valence": 0.2
+  },
+  "purpose": "commute",
+  "exploration_weight": 0.5,
+  "popularity_preference": "underground"
+}

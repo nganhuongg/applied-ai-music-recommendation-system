@@ -1,0 +1,62 @@
+{
+  "user_id": "04cb84dd-c19e-4afe-a329-80d1735134a2",
+  "name": "Huong",
+  "created_at": "2026-04-25T17:10:49.837909",
+  "favorite_artists": [
+    "Billie Eilish",
+    "BLACKPINK",
+    "Alec Benjamin"
+  ],
+  "recent_artists": [
+    "Billie Eilish",
+    "Alec Benjamin"
+  ],
+  "favorite_genres": [
+    "acoustic",
+    "chill",
+    "indie",
+    "pop"
+  ],
+  "selected_moods": [
+    "Energetic"
+  ],
+  "genre_vector": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mood_targets": {
+    "target_energy": 0.8,
+    "target_valence": 0.7
+  },
+  "purpose": "study",
+  "exploration_weight": 0.5,
+  "popularity_preference": "mixed"
+}

@@ -1,0 +1,65 @@
+{
+  "user_id": "2cb9e102-ced2-4525-85ba-4e74f46b7058",
+  "name": "Huong",
+  "created_at": "2026-04-24T23:05:54.951462",
+  "favorite_artists": [
+    "Billie Eilish",
+    "Taylor Swift",
+    "BTS",
+    "BLACKPINK"
+  ],
+  "recent_artists": [
+    "BTS",
+    "Billie Eilish",
+    "Taylor Swift"
+  ],
+  "favorite_genres": [
+    "acoustic",
+    "k-pop",
+    "chill",
+    "indie"
+  ],
+  "selected_moods": [
+    "Calm",
+    "Melancholic"
+  ],
+  "genre_vector": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mood_targets": {
+    "target_energy": 0.3,
+    "target_valence": 0.35
+  },
+  "purpose": "study",
+  "exploration_weight": 0.5,
+  "popularity_preference": "mixed"
+}

@@ -1,0 +1,63 @@
+{
+  "user_id": "5c4dc78d-3704-481e-9ec7-6fb931cce177",
+  "name": "Huong",
+  "created_at": "2026-04-25T14:23:24.040246",
+  "favorite_artists": [
+    "BTS",
+    "Billie Eilish",
+    "Taylor Swift"
+  ],
+  "recent_artists": [
+    "Alan Walker",
+    "Alec Benjamin"
+  ],
+  "favorite_genres": [
+    "ambient",
+    "blues",
+    "anime"
+  ],
+  "selected_moods": [
+    "Energetic",
+    "Calm",
+    "Melancholic"
+  ],
+  "genre_vector": [
+    0.0,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mood_targets": {
+    "target_energy": 0.467,
+    "target_valence": 0.467
+  },
+  "purpose": "relax",
+  "exploration_weight": 0.5,
+  "popularity_preference": "mixed"
+}

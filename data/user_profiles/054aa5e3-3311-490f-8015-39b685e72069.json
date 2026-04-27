@@ -1,0 +1,63 @@
+{
+  "user_id": "054aa5e3-3311-490f-8015-39b685e72069",
+  "name": "Kien",
+  "created_at": "2026-04-26T18:26:49.265469",
+  "favorite_artists": [
+    "BTS",
+    "One Direction",
+    "Taylor Swift"
+  ],
+  "recent_artists": [
+    "BTS",
+    "Justin Bieber"
+  ],
+  "favorite_genres": [
+    "alternative",
+    "classical",
+    "country",
+    "edm"
+  ],
+  "selected_moods": [
+    "Energetic",
+    "Upbeat"
+  ],
+  "genre_vector": [
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mood_targets": {
+    "target_energy": 0.7,
+    "target_valence": 0.775
+  },
+  "purpose": "commute",
+  "exploration_weight": 0.5,
+  "popularity_preference": "mixed"
+}

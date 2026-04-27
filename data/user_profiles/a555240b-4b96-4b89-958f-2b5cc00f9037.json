@@ -1,0 +1,63 @@
+{
+  "user_id": "a555240b-4b96-4b89-958f-2b5cc00f9037",
+  "name": "Huong",
+  "created_at": "2026-04-26T12:36:12.807702",
+  "favorite_artists": [
+    "Billie Eilish",
+    "BLACKPINK",
+    "Alec Benjamin",
+    "Selena Gomez"
+  ],
+  "recent_artists": [
+    "Alec Benjamin",
+    "BLACKPINK"
+  ],
+  "favorite_genres": [
+    "chill",
+    "folk",
+    "pop"
+  ],
+  "selected_moods": [
+    "Calm",
+    "Melancholic"
+  ],
+  "genre_vector": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mood_targets": {
+    "target_energy": 0.3,
+    "target_valence": 0.35
+  },
+  "purpose": "study",
+  "exploration_weight": 0.5,
+  "popularity_preference": "mixed"
+}
